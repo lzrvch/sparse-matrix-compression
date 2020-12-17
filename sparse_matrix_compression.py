@@ -26,17 +26,17 @@ def relative_index_coding(array, maximal_int=7):
                     skip_next = True
                     diff_array.append(zeros_counter)
                     zeros_counter = 0
-                # elif index == (len(array) - 1):
-                #     # sign_array.append(1)
-                #     diff_array.append(zeros_counter)
+                elif index == (len(array) - 1):
+                     # sign_array.append(1)
+                    diff_array.append(zeros_counter)
                 continue
             if index < (len(array) - 1) and array[index + 1] != 0:
                 diff_array.append(zeros_counter)
                 value_array.append(array[index + 1])
                 zeros_counter = 0
                 skip_next = True
-            # if index == (len(array) - 1):
-            #    diff_array.append(zeros_counter)
+            if index == (len(array) - 1):
+                diff_array.append(zeros_counter)
         else:
             if not skip_next:
                 diff_array.append(0)
@@ -94,138 +94,3 @@ def relative_index_decoding(value, diff, sign, target_len, maximal_int=7):
                 value_index += 1
 
     return decoded_array
-
-
-if __name__ == "__main__":
-    relative_index_coding([0, 0, 0, 0, 0, 0, 0, 0, 1, 1])
-    v, d, s = relative_index_coding([0, 0, 0, 0, 0, 0, 0, 0, 1, 1])
-    relative_index_decoding(v, d, s, target_len=10)
-
-    size = 100
-    for _ in range(1000):
-        a = gen_random_sparse_array(size, rate=0.5)
-        v, d, s = relative_index_coding(a, maximal_int=1)
-        if not np.array_equal(
-            relative_index_decoding(v, d, s, target_len=size, maximal_int=1), a
-        ):
-            print(a)
-
-    bits_per_element = 1
-    maximal_diff_int = 2 ** bits_per_element - 1
-    bits_for_storage(
-        gen_random_sparse_array(1000, rate=0.5),
-        maximal_diff_int,
-        bits_per_element,
-        inverse_coding=False,
-    )
-
-    bits_per_element = 1
-    maximal_diff_int = 2 ** bits_per_element - 1
-
-    array = gen_random_sparse_array(1000, rate=0.5)
-    num_bits = 0
-    interval = 4
-    for interval_index in range(int(array.shape[0] / interval)):
-        num_bits += bits_for_storage(
-            array[interval_index * interval : (interval_index + 1) * interval],
-            maximal_diff_int,
-            bits_per_element,
-        )
-
-    print(num_bits)
-
-    bits_per_element = 2
-    maximal_diff_int = 2 ** bits_per_element - 1
-
-    array = gen_random_sparse_array(1000, rate=0.5)
-    num_bits = 0
-    interval = 8
-    for interval_index in range(int(array.shape[0] / interval)):
-        sub_interval = array[
-            interval_index * interval : (interval_index + 1) * interval
-        ]
-        if np.mean(sub_interval) <= 0.5:
-            # if interval_index % 2 == 0:
-            b = bits_for_storage(sub_interval, maximal_diff_int, bits_per_element)
-        else:
-            b = bits_for_storage(
-                sub_interval, maximal_diff_int, bits_per_element, inverse_coding=True
-            )
-            # b += 1
-        num_bits += b
-
-    print(num_bits)
-
-    bits_per_element = 1
-    maximal_diff_int = 2 ** bits_per_element - 1
-    array = gen_random_sparse_array(1000, rate=0.5)
-    val, diff, sign = relative_index_coding(array, maximal_int=maximal_diff_int)
-    bits_per_element * diff.shape[0] + sign.shape[0]
-
-    print(np.mean(diff))
-    print(diff.shape)
-    print(sign.shape)
-
-    bits_per_element = 1
-    maximal_diff_int = 2 ** bits_per_element - 1
-    array = gen_random_sparse_array(1000, rate=0.5)
-
-    interval = 4
-    full_diff = []
-    full_sign = []
-
-    for interval_index in range(int(array.shape[0] / interval)):
-        sub_interval = array[
-            interval_index * interval : (interval_index + 1) * interval
-        ]
-        diff, val, sign = relative_index_coding(
-            sub_interval, maximal_int=maximal_diff_int
-        )
-        full_diff += list(diff)
-        full_sign += list(sign)
-
-    full_diff = np.array(full_diff)
-    full_sign = np.array(full_sign)
-
-    print(len(full_diff) + len(full_sign))
-    print(full_diff.shape[0])
-    full_diff = np.array([0 if val > 0 else 1 for val in full_diff])
-    print(1 - np.mean(full_diff))
-
-    interval = 4
-    full_diff2 = []
-    full_sign2 = []
-    for interval_index in range(int(full_diff.shape[0] / interval)):
-        sub_interval = full_diff[
-            interval_index * interval : (interval_index + 1) * interval
-        ]
-        diff2, val, sign2 = relative_index_coding(
-            sub_interval, maximal_int=maximal_diff_int
-        )
-        full_diff2 += list(diff2)
-        full_sign2 += list(sign2)
-
-    full_diff2 = np.array(full_diff2)
-    full_sign2 = np.array(full_sign2)
-
-    print(len(full_diff2) + len(full_sign2))
-    print(full_sign.shape[0])
-    print(1 - np.mean(full_sign))
-
-    interval = 4
-    full_diff3 = []
-    full_sign3 = []
-    for interval_index in range(int(full_sign.shape[0] / interval)):
-        sub_interval = full_sign[
-            interval_index * interval : (interval_index + 1) * interval
-        ]
-        diff3, val, sign3 = relative_index_coding(
-            sub_interval, maximal_int=maximal_diff_int
-        )
-        full_diff3 += list(diff3)
-        full_sign3 += list(sign3)
-
-    full_diff3 = np.array(full_diff3)
-    full_sign3 = np.array(full_sign3)
-
-    print(len(full_diff3) + len(full_sign3))
